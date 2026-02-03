@@ -28,7 +28,7 @@ def show_login_page():
             <h1>{APP_ICON} {APP_NAME}</h1>
             <h3>{APP_DESCRIPTION}</h3>
             <p style='font-size: 1.2em; color: #666; margin-bottom: 1em;'>{APP_TAGLINE}</p>
-            <h3>{("Welcome Back!" if current_form == 'login' else "Welcome!")}</h3>
+            <h3>{("Welcome Back!" if current_form == 'login' else "Welcome to your Health Insights Agent!")}</h3>
         </div>
     """, unsafe_allow_html=True)
 
