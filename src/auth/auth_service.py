@@ -285,7 +285,7 @@ class AuthService:
                 return False, "Please enter a valid email address."
             self.supabase.auth.reset_password_for_email(
                 email,
-                options={"redirect_to": "http://localhost:8501/"},
+                options={"redirect_to": "http://localhost:8501/?type=recovery"},
             )
             return True, "Password reset email sent! Please check your inbox."
         except Exception as e:

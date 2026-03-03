@@ -58,22 +58,51 @@ st.markdown(
 )
 
 # If Supabase redirects with the recovery token in the URL hash fragment,
-# convert it to a real query parameter so Streamlit (Python) can read it.
+# use window.parent to rewrite the top-level browser URL (not the iframe URL).
 st.markdown(
     """
     <script>
         (function() {
-            const hash = window.location.hash;
-            if (hash && hash.includes('type=recovery')) {
-                const params = new URLSearchParams(hash.substring(1));
-                const tokenHash = params.get('token_hash');
-                const accessToken = params.get('access_token');
-                const refreshToken = params.get('refresh_token');
-                let newUrl = window.location.pathname + '?type=recovery';
-                if (tokenHash) newUrl += '&token_hash=' + encodeURIComponent(tokenHash);
-                if (accessToken) newUrl += '&access_token=' + encodeURIComponent(accessToken);
-                if (refreshToken) newUrl += '&refresh_token=' + encodeURIComponent(refreshToken);
-                window.location.replace(newUrl);
+            try {
+                // Try to access the parent frame's location (works when not cross-origin)
+                var topHash = window.parent.location.hash;
+                if (topHash && topHash.includes('type=recovery')) {
+                    var params = new URLSearchParams(topHash.substring(1));
+                    var tokenHash  = params.get('token_hash');
+                    var accessToken = params.get('access_token');
+                    var refreshToken = params.get('refresh_token');
+                    var newUrl = window.parent.location.pathname + '?type=recovery';
+                    if (tokenHash)    newUrl += '&token_hash='    + encodeURIComponent(tokenHash);
+                    if (accessToken)  newUrl += '&access_token='  + encodeURIComponent(accessToken);
+                    if (refreshToken) newUrl += '&refresh_token=' + encodeURIComponent(refreshToken);
+                    window.parent.location.replace(newUrl);
+                    return;
+                }
+                // Also check the current frame's hash as fallback
+                var hash = window.location.hash;
+                if (hash && hash.includes('type=recovery')) {
+                    var params = new URLSearchParams(hash.substring(1));
+                    var tokenHash  = params.get('token_hash');
+                    var accessToken = params.get('access_token');
+                    var refreshToken = params.get('refresh_token');
+                    var newUrl = window.location.pathname + '?type=recovery';
+                    if (tokenHash)    newUrl += '&token_hash='    + encodeURIComponent(tokenHash);
+                    if (accessToken)  newUrl += '&access_token='  + encodeURIComponent(accessToken);
+                    if (refreshToken) newUrl += '&refresh_token=' + encodeURIComponent(refreshToken);
+                    window.location.replace(newUrl);
+                }
+            } catch(e) {
+                // cross-origin restriction — fall back to current frame
+                var hash = window.location.hash;
+                if (hash && hash.includes('type=recovery')) {
+                    var params = new URLSearchParams(hash.substring(1));
+                    var tokenHash  = params.get('token_hash');
+                    var accessToken = params.get('access_token');
+                    var newUrl = window.location.pathname + '?type=recovery';
+                    if (tokenHash)    newUrl += '&token_hash='    + encodeURIComponent(tokenHash);
+                    if (accessToken)  newUrl += '&access_token='  + encodeURIComponent(accessToken);
+                    window.location.replace(newUrl);
+                }
             }
         })();
     </script>
