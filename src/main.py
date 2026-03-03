@@ -14,19 +14,24 @@ st.set_page_config(
 
 # Detect password-reset redirect BEFORE init_session() so that init_session()
 # knows to skip token validation and not wipe the reset tokens from state.
+# Supabase sends either:
+#   PKCE flow  → ?token_hash=xxx&type=recovery  (modern default)
+#   Legacy flow → ?access_token=xxx&type=recovery
+# Both must be captured BEFORE st.query_params.clear() is called.
 if st.query_params.get("type") == "recovery":
     st.session_state["password_reset_mode"] = True
+
+    token_hash = st.query_params.get("token_hash", "")
     access_token = st.query_params.get("access_token", "")
     refresh_token = st.query_params.get("refresh_token", "")
+
+    if token_hash:
+        st.session_state["reset_token_hash"] = token_hash
     if access_token:
         st.session_state["reset_access_token"] = access_token
         st.session_state["reset_refresh_token"] = refresh_token
-    st.query_params.clear()
 
-# Also handle token_hash-based PKCE recovery flow
-if st.query_params.get("token_hash") and st.query_params.get("type") == "recovery":
-    st.session_state["password_reset_mode"] = True
-    st.session_state["reset_token_hash"] = st.query_params.get("token_hash")
+    # Clear params AFTER reading all values
     st.query_params.clear()
 
 # Initialize session state
