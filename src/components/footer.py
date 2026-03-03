@@ -100,7 +100,7 @@ def show_footer(in_sidebar=False):
                        '
                        onmouseover="this.style.color='{PRIMARY_COLOR}'; this.style.textDecoration='underline'"
                        onmouseout="this.style.color='#1976D2'; this.style.textDecoration='none'">
-                       Created by Harsh Gajjar
+                       Modified by AsterDev
                     </a>
                 </span>
             </p>
