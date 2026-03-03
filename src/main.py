@@ -19,12 +19,6 @@ st.set_page_config(
 #   Legacy flow → ?access_token=xxx&type=recovery
 # Both must be captured BEFORE st.query_params.clear() is called.
 
-# --- DEBUG: show all query params received (remove after fixing) ---
-_all_params = dict(st.query_params)
-if _all_params:
-    st.write("DEBUG query_params:", _all_params)
-# ------------------------------------------------------------------
-
 if st.query_params.get("type") == "recovery":
     st.session_state["password_reset_mode"] = True
 
@@ -218,12 +212,6 @@ def show_user_greeting():
 
 def main():
     SessionManager.init_session()
-
-    # --- DEBUG ---
-    st.write("DEBUG session_state keys:", {k: v for k, v in st.session_state.items()
-              if k in ('password_reset_mode', 'reset_token_hash', 'reset_access_token',
-                       'reset_session_verified', 'user', 'session_initialized')})
-    # -------------
 
     if st.session_state.get("password_reset_mode"):
         # If we have a token_hash (PKCE flow), exchange it for a real session first.
