@@ -29,7 +29,8 @@ class SessionManager:
         st.session_state.last_activity = datetime.now()
         
         # Validate token and user data
-        if 'user' in st.session_state:
+        # Skip validation during password reset flow to avoid wiping reset tokens
+        if 'user' in st.session_state and not st.session_state.get('password_reset_mode'):
             user_data = st.session_state.auth_service.validate_session_token()
             if not user_data:
                 SessionManager.clear_session_state()

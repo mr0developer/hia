@@ -12,6 +12,17 @@ st.set_page_config(
     page_title="HIA - Health Insights Agent", page_icon="🩺", layout="wide"
 )
 
+# Detect password-reset redirect BEFORE init_session() so that init_session()
+# knows to skip token validation and not wipe the reset tokens from state.
+if st.query_params.get("type") == "recovery":
+    st.session_state["password_reset_mode"] = True
+    access_token = st.query_params.get("access_token", "")
+    refresh_token = st.query_params.get("refresh_token", "")
+    if access_token:
+        st.session_state["reset_access_token"] = access_token
+        st.session_state["reset_refresh_token"] = refresh_token
+    st.query_params.clear()
+
 # Initialize session state
 SessionManager.init_session()
 
@@ -158,28 +169,6 @@ def show_user_greeting():
 
 def main():
     SessionManager.init_session()
-
-    # Detect Supabase password-reset redirect (?type=recovery in query params)
-    query_params = st.query_params
-    if query_params.get("type") == "recovery":
-        st.session_state["password_reset_mode"] = True
-
-        # Use the tokens from the URL to authenticate the Supabase client,
-        # so that update_user() will be authorised when the user submits the form.
-        access_token = query_params.get("access_token", "")
-        refresh_token = query_params.get("refresh_token", "")
-        if access_token:
-            try:
-                st.session_state.auth_service.supabase.auth.set_session(
-                    access_token, refresh_token
-                )
-                st.session_state["reset_access_token"] = access_token
-                st.session_state["reset_refresh_token"] = refresh_token
-            except Exception:
-                pass
-
-        # Clear the query params so they don't persist on rerun
-        st.query_params.clear()
 
     if st.session_state.get("password_reset_mode"):
         # Re-apply the stored reset tokens on every rerun so the Supabase client
