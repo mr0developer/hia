@@ -182,6 +182,17 @@ def main():
         st.query_params.clear()
 
     if st.session_state.get("password_reset_mode"):
+        # Re-apply the stored reset tokens on every rerun so the Supabase client
+        # stays authenticated when the user submits the new-password form.
+        access_token = st.session_state.get("reset_access_token", "")
+        refresh_token = st.session_state.get("reset_refresh_token", "")
+        if access_token:
+            try:
+                st.session_state.auth_service.supabase.auth.set_session(
+                    access_token, refresh_token
+                )
+            except Exception:
+                pass
         show_update_password_form()
         show_footer()
         return
