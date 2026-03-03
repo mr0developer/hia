@@ -23,38 +23,57 @@ def show_login_page():
         </style>
     """, unsafe_allow_html=True)
 
+    # Heading changes based on current form
+    if current_form == 'forgot_password':
+        heading = "Reset Your Password"
+    elif current_form == 'login':
+        heading = "Welcome Back!"
+    else:
+        heading = "Welcome to your Health Insights Agent!"
+
     st.markdown(f"""
         <div style='text-align: center; padding: 2rem;'>
             <h1>{APP_ICON} {APP_NAME}</h1>
             <h3>{APP_DESCRIPTION}</h3>
             <p style='font-size: 1.2em; color: #666; margin-bottom: 1em;'>{APP_TAGLINE}</p>
-            <h3>{("Welcome Back!" if current_form == 'login' else "Welcome to your Health Insights Agent!")}</h3>
+            <h3>{heading}</h3>
         </div>
     """, unsafe_allow_html=True)
 
     # Center the form
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Use the stored current_form value
         if current_form == 'login':
             show_login_form()
-        else:
+        elif current_form == 'signup':
             show_signup_form()
-        
-        # Toggle button at bottom
+        else:
+            show_forgot_password_form()
+
+        # Toggle / back button at the bottom
         st.markdown("---")
-        toggle_text = "Don't have an account? Sign up" if current_form == 'login' else "Already have an account? Login"
-        if st.button(toggle_text, use_container_width=True, type="secondary"):
-            # Toggle form type (use dict access for safety)
-            st.session_state['form_type'] = 'signup' if current_form == 'login' else 'login'
-            st.rerun()
+        if current_form == 'forgot_password':
+            if st.button("← Back to Login", use_container_width=True, type="secondary"):
+                st.session_state['form_type'] = 'login'
+                st.rerun()
+        else:
+            toggle_text = "Don't have an account? Sign up" if current_form == 'login' else "Already have an account? Login"
+            if st.button(toggle_text, use_container_width=True, type="secondary"):
+                st.session_state['form_type'] = 'signup' if current_form == 'login' else 'login'
+                st.rerun()
 
 def show_login_form():
     with st.form("login_form"):
         email = st.text_input("Email", key="login_email")
         password = st.text_input("Password", type="password", key="login_password")
-        
-        if st.form_submit_button("Login", use_container_width=True, type="primary"):
+
+        col_login, col_forgot = st.columns([3, 2])
+        with col_login:
+            login_clicked = st.form_submit_button("Login", use_container_width=True, type="primary")
+        with col_forgot:
+            forgot_clicked = st.form_submit_button("Forgot Password?", use_container_width=True)
+
+        if login_clicked:
             if email and password:
                 success, result = SessionManager.login(email, password)
                 if success:
@@ -68,6 +87,10 @@ def show_login_form():
                     st.error(f"Login failed: {result}")
             else:
                 st.error("Please enter both email and password")
+
+        if forgot_clicked:
+            st.session_state['form_type'] = 'forgot_password'
+            st.rerun()
 
 def show_signup_form():
     with st.form("signup_form"):
@@ -107,3 +130,69 @@ def show_signup_form():
                     st.rerun()
                 else:
                     st.error(f"Sign up failed: {response}")
+
+def show_forgot_password_form():
+    """Show the forgot password / send-reset-link form."""
+    st.markdown("Enter your account email address and we'll send you a link to reset your password.")
+
+    with st.form("forgot_password_form"):
+        email = st.text_input("Email Address", key="reset_email", placeholder="your@email.com")
+
+        if st.form_submit_button("Send Reset Link", use_container_width=True, type="primary"):
+            if not email:
+                st.error("Please enter your email address.")
+                return
+
+            with st.spinner("Sending reset email..."):
+                success, message = st.session_state.auth_service.send_password_reset(email)
+
+            if success:
+                st.success(message)
+                st.info("💡 Click the link in your email to be redirected back here and set a new password.")
+            else:
+                st.error(message)
+
+def show_update_password_form():
+    """Show the new-password form after the user arrives via a reset link."""
+    st.markdown(
+        """
+        <div style='text-align: center; padding: 1rem 0 1.5rem;'>
+            <h2>🔒 Set a New Password</h2>
+            <p>Enter and confirm your new password below.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.form("update_password_form"):
+            new_password = st.text_input("New Password", type="password", key="new_password")
+            confirm_password = st.text_input("Confirm New Password", type="password", key="confirm_new_password")
+
+            st.markdown("""
+                Password requirements:
+                - At least 8 characters
+                - One uppercase letter
+                - One lowercase letter
+                - One number
+            """)
+
+            if st.form_submit_button("Update Password", use_container_width=True, type="primary"):
+                if not new_password or not confirm_password:
+                    st.error("Please fill in both fields.")
+                    return
+                if new_password != confirm_password:
+                    st.error("Passwords do not match.")
+                    return
+
+                with st.spinner("Updating password..."):
+                    success, message = st.session_state.auth_service.update_password(new_password)
+
+                if success:
+                    st.success(message)
+                    st.session_state.pop("password_reset_mode", None)
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.error(message)

@@ -1,6 +1,6 @@
 import streamlit as st
 from auth.session_manager import SessionManager
-from components.auth_pages import show_login_page
+from components.auth_pages import show_login_page, show_update_password_form
 from components.sidebar import show_sidebar
 from components.analysis_form import show_analysis_form
 from components.footer import show_footer
@@ -24,6 +24,28 @@ st.markdown(
             visibility: hidden;
         }
     </style>
+""",
+    unsafe_allow_html=True,
+)
+
+# If Supabase redirects with the recovery token in the URL hash fragment,
+# convert it to a real query parameter so Streamlit (Python) can read it.
+st.markdown(
+    """
+    <script>
+        (function() {
+            const hash = window.location.hash;
+            if (hash && hash.includes('type=recovery')) {
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
+                let newUrl = window.location.pathname + '?type=recovery';
+                if (accessToken) newUrl += '&access_token=' + encodeURIComponent(accessToken);
+                if (refreshToken) newUrl += '&refresh_token=' + encodeURIComponent(refreshToken);
+                window.location.replace(newUrl);
+            }
+        })();
+    </script>
 """,
     unsafe_allow_html=True,
 )
@@ -136,6 +158,33 @@ def show_user_greeting():
 
 def main():
     SessionManager.init_session()
+
+    # Detect Supabase password-reset redirect (?type=recovery in query params)
+    query_params = st.query_params
+    if query_params.get("type") == "recovery":
+        st.session_state["password_reset_mode"] = True
+
+        # Use the tokens from the URL to authenticate the Supabase client,
+        # so that update_user() will be authorised when the user submits the form.
+        access_token = query_params.get("access_token", "")
+        refresh_token = query_params.get("refresh_token", "")
+        if access_token:
+            try:
+                st.session_state.auth_service.supabase.auth.set_session(
+                    access_token, refresh_token
+                )
+                st.session_state["reset_access_token"] = access_token
+                st.session_state["reset_refresh_token"] = refresh_token
+            except Exception:
+                pass
+
+        # Clear the query params so they don't persist on rerun
+        st.query_params.clear()
+
+    if st.session_state.get("password_reset_mode"):
+        show_update_password_form()
+        show_footer()
+        return
 
     if not SessionManager.is_authenticated():
         show_login_page()

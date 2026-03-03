@@ -277,3 +277,28 @@ class AuthService:
             return response.data if response else None
         except Exception:
             return None
+
+    def send_password_reset(self, email):
+        """Send a password reset email via Supabase."""
+        try:
+            if not self.validate_email(email):
+                return False, "Please enter a valid email address."
+            self.supabase.auth.reset_password_for_email(
+                email,
+                options={"redirect_to": "http://localhost:8501/?type=recovery"},
+            )
+            return True, "Password reset email sent! Please check your inbox."
+        except Exception as e:
+            return False, f"Failed to send reset email: {str(e)}"
+
+    def update_password(self, new_password):
+        """Update the authenticated user's password after a reset."""
+        try:
+            from utils.validators import validate_password
+            is_valid, error_msg = validate_password(new_password)
+            if not is_valid:
+                return False, error_msg
+            self.supabase.auth.update_user({"password": new_password})
+            return True, "Password updated successfully!"
+        except Exception as e:
+            return False, f"Failed to update password: {str(e)}"
