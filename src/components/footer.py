@@ -87,7 +87,7 @@ def show_footer(in_sidebar=False):
                     gap: 4px;
                     transition: all 0.2s ease;
                 ">
-                    <a href='https://harshgajjar.vercel.app' 
+                    <a href='https://asterdev.netlify.app/' 
                        target='_blank' 
                        style='
                            color: #1976D2;
