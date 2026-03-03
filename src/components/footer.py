@@ -59,7 +59,7 @@ def show_footer(in_sidebar=False):
                     background: rgba(100, 181, 246, 0.05);
                     transition: all 0.2s ease;
                 ">
-                    <a href='https://github.com/harshhh28/hia' 
+                    <a href='https://github.com/mr0developer/hia' 
                        target='_blank' 
                        style='
                            color: #64B5F6;
