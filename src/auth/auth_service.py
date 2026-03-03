@@ -285,11 +285,23 @@ class AuthService:
                 return False, "Please enter a valid email address."
             self.supabase.auth.reset_password_for_email(
                 email,
-                options={"redirect_to": "http://localhost:8501/?type=recovery"},
+                options={"redirect_to": "http://localhost:8501/"},
             )
             return True, "Password reset email sent! Please check your inbox."
         except Exception as e:
             return False, f"Failed to send reset email: {str(e)}"
+
+    def verify_recovery_token(self, token_hash):
+        """Exchange the token_hash from the reset email for a real session."""
+        try:
+            response = self.supabase.auth.verify_otp(
+                {"token_hash": token_hash, "type": "recovery"}
+            )
+            if response and response.session:
+                return True, response.session
+            return False, "Invalid or expired reset token."
+        except Exception as e:
+            return False, f"Token verification failed: {str(e)}"
 
     def update_password(self, new_password):
         """Update the authenticated user's password after a reset."""
