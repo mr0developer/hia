@@ -39,13 +39,70 @@ if st.query_params.get("type") == "recovery":
 # Initialize session state
 SessionManager.init_session()
 
-# Hide all Streamlit form-related elements
+# Hide all Streamlit form-related elements + global background styling
 st.markdown(
     """
     <style>
-        /* Hide form submission helper text */
+        /* ── Hide form submission helper text ── */
         div[data-testid="InputInstructions"] > span:nth-child(1) {
             visibility: hidden;
+        }
+
+        /* ── Global body background ── */
+        .stApp {
+            background:
+                radial-gradient(ellipse at 15% 20%, rgba(25, 118, 210, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 75%, rgba(100, 181, 246, 0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(21, 101, 192, 0.04) 0%, transparent 70%),
+                linear-gradient(160deg, #0a0e1a 0%, #0d1117 40%, #0a0f1e 100%);
+            background-attachment: fixed;
+        }
+
+        /* ── Subtle dot-grid texture overlay ── */
+        .stApp::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(rgba(100, 181, 246, 0.07) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Keep content above the texture ── */
+        .stApp > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Main content area — subtle frosted card feel ── */
+        .main .block-container {
+            background: rgba(13, 17, 23, 0.55);
+            backdrop-filter: blur(2px);
+            border-radius: 16px;
+            border: 1px solid rgba(100, 181, 246, 0.06);
+            padding-top: 1.5rem;
+        }
+
+        /* ── Sidebar background ── */
+        [data-testid="stSidebar"] {
+            background:
+                linear-gradient(180deg,
+                    rgba(13, 21, 40, 0.98) 0%,
+                    rgba(10, 16, 30, 0.98) 100%
+                ) !important;
+            border-right: 1px solid rgba(100, 181, 246, 0.1) !important;
+        }
+
+        /* ── Scrollbar styling ── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(100, 181, 246, 0.25);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 181, 246, 0.45);
         }
     </style>
 """,
