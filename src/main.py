@@ -4,6 +4,7 @@ from components.auth_pages import show_login_page, show_update_password_form
 from components.sidebar import show_sidebar
 from components.analysis_form import show_analysis_form
 from components.footer import show_footer
+from components.header import show_user_greeting
 from config.app_config import APP_NAME, APP_TAGLINE, APP_DESCRIPTION, APP_ICON
 from services.ai_service import get_chat_response
 
@@ -192,22 +193,6 @@ def handle_chat_input(messages):
             )
             # Rerun to update history display properly
             st.rerun()
-
-
-def show_user_greeting():
-    if st.session_state.user:
-        # Get name from user data, fallback to email if name is empty
-        display_name = st.session_state.user.get("name") or st.session_state.user.get(
-            "email", ""
-        )
-        st.markdown(
-            f"""
-            <div style='text-align: right; padding: 1rem; color: #64B5F6; font-size: 1.1em;'>
-                👋 Hello, {display_name}
-            </div>
-        """,
-            unsafe_allow_html=True,
-        )
 
 
 def main():
