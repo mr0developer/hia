@@ -6,7 +6,7 @@ APP_TAGLINE = "Discover a Healthier You with AI"
 # App settings
 MAX_UPLOAD_SIZE_MB = 20
 MAX_PDF_PAGES = 50
-SESSION_TIMEOUT_MINUTES = 30
+SESSION_TIMEOUT_MINUTES = 1440  # 24 hours of inactivity before logout
 ANALYSIS_DAILY_LIMIT = 15
 
 # UI Settings

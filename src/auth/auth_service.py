@@ -229,11 +229,11 @@ class AuthService:
             return False, str(e)
 
     def validate_session_token(self):
-        """Validate existing session token on startup."""
+        """Validate existing session token, proactively refreshing if near expiry."""
         try:
             session = self.supabase.auth.get_session()
             if not session or not session.access_token:
-                # If no session in Supabase client, but we have tokens in state, try to set session again
+                # No session in Supabase client — try restoring from state tokens
                 if (
                     "auth_token" in st.session_state
                     and "refresh_token" in st.session_state
@@ -247,14 +247,42 @@ class AuthService:
                         pass
 
             if not session or not session.access_token:
+                # Last resort: try explicit token refresh
+                try:
+                    refreshed = self.supabase.auth.refresh_session()
+                    if refreshed and refreshed.session:
+                        session = refreshed.session
+                except Exception:
+                    pass
+
+            if not session or not session.access_token:
                 return None
 
-            # Relaxed validation: If we have a valid Supabase session, update our state instead of failing
-            # This handles token refreshes or slight mismatches
+            # Proactively refresh if token expires within the next 10 minutes
+            try:
+                expires_at = getattr(session, "expires_at", None)
+                if expires_at:
+                    from datetime import timezone
+                    now_ts = datetime.now(timezone.utc).timestamp()
+                    if (expires_at - now_ts) < 600:  # less than 10 min left
+                        refreshed = self.supabase.auth.refresh_session()
+                        if refreshed and refreshed.session:
+                            session = refreshed.session
+            except Exception:
+                pass
+
+            # Keep state in sync with the latest tokens
             if session.access_token != st.session_state.get("auth_token"):
                 st.session_state.auth_token = session.access_token
                 if session.refresh_token:
                     st.session_state.refresh_token = session.refresh_token
+                # Persist refreshed tokens so they survive page reloads
+                from auth.session_manager import SessionManager
+                if st.session_state.get("user"):
+                    SessionManager._save_to_persistent_storage(
+                        st.session_state.user,
+                        session.access_token,
+                    )
 
             user = self.supabase.auth.get_user()
             if not user or not user.user:
