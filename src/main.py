@@ -104,6 +104,23 @@ st.markdown(
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(100, 181, 246, 0.45);
         }
+
+        /* ── Danger & Cancel Button Styling using Streamlit Keys ── */
+        div[class*="st-key-logout"] button, 
+        div[class*="st-key-delete"] button,
+        div[class*="st-key-cancel"] button,
+        div[class*="st-key-confirm"] button {
+            background-color: rgba(211, 47, 47, 0.85) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(211, 47, 47, 0.5) !important;
+        }
+        div[class*="st-key-logout"] button:hover, 
+        div[class*="st-key-delete"] button:hover,
+        div[class*="st-key-cancel"] button:hover,
+        div[class*="st-key-confirm"] button:hover {
+            background-color: rgba(211, 47, 47, 1) !important;
+            border: 1px solid rgba(211, 47, 47, 0.8) !important;
+        }
     </style>
 """,
     unsafe_allow_html=True,

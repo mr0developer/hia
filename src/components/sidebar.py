@@ -7,7 +7,7 @@ def show_sidebar():
     with st.sidebar:
         st.title("💬 Chat Sessions")
         
-        if st.button("+ New Analysis Session", use_container_width=True):
+        if st.button("+ New Analysis Session", use_container_width=True, type="primary"):
             if st.session_state.user and 'id' in st.session_state.user:
                 success, session = SessionManager.create_chat_session()
                 if success:
@@ -53,7 +53,7 @@ def show_sidebar():
         
         # Logout button
         st.markdown("---")
-        if st.button("Logout", use_container_width=True):
+        if st.button("Logout", key="logout_btn", use_container_width=True):
             SessionManager.logout()
             st.rerun()
         

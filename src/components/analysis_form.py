@@ -76,7 +76,7 @@ def render_patient_form(pdf_contents):
         with col2:
             gender = st.selectbox("Gender", ["Male", "Female", "Other"])
 
-        if st.form_submit_button("Analyze Report"):
+        if st.form_submit_button("Analyze Report", type="primary"):
             handle_form_submission(patient_name, age, gender, pdf_contents)
 
 

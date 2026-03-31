@@ -1,2 +1,7 @@
 [server]
 maxUploadSize = 20
+
+[theme]
+# Set primary color to a favorable blue instead of default danger red
+primaryColor = "#1E88E5" # A professional active-action blue
+base = "dark"
